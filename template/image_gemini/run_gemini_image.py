@@ -3,13 +3,14 @@ from google import genai
 from google.genai.errors import APIError
 from PIL import Image
 from io import BytesIO
-from prompt import SYSTEM_PROMPT
+from google.genai import types
+from .prompt import SYSTEM_PROMPT
 
 from dotenv import load_dotenv
 load_dotenv()
 
 # 環境変数から API キーを取得
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = os.getenv("GOOGLE_API_KEY")
 if not api_key:
     raise ValueError("GEMINI_API_KEY が設定されていません。環境変数を確認してください。")
 
@@ -31,17 +32,26 @@ def generate_and_save_image(output_path: str) -> None:
         output_path: 出力する画像の名前
     """
 
-    print(f"プロンプト: '{prompt}' に基づいて画像を生成中...")
+    print(f"プロンプト: '{SYSTEM_PROMPT}' に基づいて画像を生成中...")
     
     try:
         # 画像生成API (Imagenモデル) の呼び出し
-        result = client.models.generate_images(
-            model='imagen-3.0-generate-002',
-            prompt=SYSTEM_PROMPT,
-            config=dict(
-                number_of_images=1, # 生成する画像の数
-                output_mime_type="image/png", # 出力形式
-                aspect_ratio="1:1" # アスペクト比 (例: "16:9", "1:1")
+        # result = client.models.generate_images(
+        #     model='gemini-2.5-flash-image',
+        #     prompt=SYSTEM_PROMPT,
+        #     config=dict(
+        #         number_of_images=1, # 生成する画像の数
+        #         output_mime_type="image/png", # 出力形式
+        #         aspect_ratio="1:1" # アスペクト比 (例: "16:9", "1:1")
+        #     )
+        # )
+        result = client.models.generate_content(
+            model="gemini-2.5-flash-image",
+            contents=[SYSTEM_PROMPT],
+            config=types.GenerateContentConfig(
+                image_config=types.ImageConfig(
+                    aspect_ratio="16:9",
+                )
             )
         )
 

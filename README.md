@@ -9,8 +9,14 @@
 
 ## 実行方法
 
+Geminiを含めたバックのみ実行
 ```
-python3 main.py
+python -m src.back.main
+```
+
+Geminiだけの実行
+```
+python -m src.back.core.run_gemini
 ```
 
 ## 始め方
