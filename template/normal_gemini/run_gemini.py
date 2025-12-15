@@ -40,12 +40,13 @@ def run_gemini():
     client = genai.Client(api_key=api_key)
 
     response = client.models.generate_content(
-        model="gemini-2.5-pro",
+        model="gemini-2.5-flash",
         contents=SYSTEM_PROMPT,
     )
 
     # BaseModelで出力の型を定義
     answer = DefinitionAnswer(answer=response.text)
+    print(answer)
     return answer.answer
 
 
