@@ -2,15 +2,15 @@
 Geminiを実行するモジュール
 """
 
-from dotenv import load_dotenv
 import os
+from dotenv import load_dotenv
 
 try:
     from src.back.definition.prompt import SYSTEM_PROMPT
-    from src.back.definition.def_gemini_output import GeminiInput, GeminiOutput
+    from src.back.schema.new_horse import GeminiInput, GeminiOutput
 except Exception:
     from src.back.definition.prompt import SYSTEM_PROMPT
-    from src.back.definition.def_gemini_output import GeminiInput, GeminiOutput
+    from src.back.schema.new_horse import GeminiInput, GeminiOutput
 
 try:
     from google import genai
@@ -19,9 +19,11 @@ except Exception:
 
 load_dotenv()   # ディレクトリにある.envファイルを読み込む
 
-def run_gemini():
+def run_gemini(prompt: str) -> str:
     """Geminiを実行させてstringで結果を返す
 
+    Args:
+        prompt (str): Geminiに渡すプロンプト
     Returns:
         str: generation text or error message
     """
@@ -37,11 +39,9 @@ def run_gemini():
 
     client = genai.Client(api_key=api_key)
 
-    prompt = GeminiInput(prompt=SYSTEM_PROMPT)
-
     response = client.models.generate_content(
         model="gemini-2.5-flash",
-        contents=prompt.prompt,
+        contents=prompt,
     )
 
     # BaseModelで出力の型を定義
@@ -51,5 +51,5 @@ def run_gemini():
 
 
 if __name__ == "__main__":
-    response = run_gemini()
+    response = run_gemini(prompt = SYSTEM_PROMPT)
     print(response)

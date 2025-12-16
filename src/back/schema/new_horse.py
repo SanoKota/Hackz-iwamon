@@ -1,6 +1,10 @@
-from src.back.core.run_gemini import run_gemini
+from pydantic import BaseModel
 
-class RunGemini():
-    run_gemini()
+class GeminiInput(BaseModel):
+    prompt: str
+    # 馬2頭のデータ
+    # 仔馬の名前: str
 
 
+class GeminiOutput(BaseModel):
+    response: str
