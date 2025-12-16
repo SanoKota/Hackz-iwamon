@@ -21,7 +21,6 @@ try:
 except Exception as e:
     print(f"クライアントの初期化中にエラーが発生しました: {e}")
     exit()
-
 # 出力ファイル名
 output_filename = "generated_image.png"
 
@@ -76,4 +75,15 @@ def generate_and_save_image(output_path: str) -> None:
         print(f"予期せぬエラーが発生しました: {e}")
 
 if __name__ == "__main__":
+    # オプション: 実行時に利用可能なモデル一覧を取得して表示（例外をハンドル）
+    try:
+        pager = client.models.list()
+        for model in pager:
+            # model は protobuf 型のオブジェクト。最低限 name を出力すると分かりやすいです。
+            print(model.name)
+            # 追加情報が欲しければ:
+            print(model.display_name, getattr(model, 'description', ''))
+    except Exception as e:
+        print(f"モデル一覧の取得中にエラーが発生しました: {e}")
+
     generate_and_save_image(output_filename)
