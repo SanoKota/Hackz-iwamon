@@ -1,0 +1,14 @@
+# Web Framework
+Flask==3.0.0
+
+# Google Gemini AI
+google-genai>=0.3.0
+
+# Database
+supabase==2.3.4
+
+# Data Validation
+pydantic==2.5.3
+
+# Environment Variables
+python-dotenv==1.0.0
