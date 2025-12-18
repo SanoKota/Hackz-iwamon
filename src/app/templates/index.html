@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini App</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>Gemini Chat</h1>
+    <form method="POST">
+        <label for="prompt">プロンプトを入力してください:</label><br>
+        <textarea name="prompt" id="prompt" rows="5" required></textarea><br>
+        <button type="submit">送信</button>
+    </form>
+
+    {% if response %}
+    <div class="response">
+        <h2>Geminiからの回答:</h2>
+        <div>{{ response }}</div>
+    </div>
+    {% endif %}
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
