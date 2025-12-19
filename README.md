@@ -21,21 +21,6 @@ python -m src.back.core.run_gemini
 
 ## 始め方
 
-### 仮想環境の実行
-
-仮想環境に入る
-```
-source ./venv/bin/activate
-```
-仮想環境から出る
-```
-deactivate
-```
-新しくライブラリを追加する
-```
-pip install ライブラリ名
-```
-
 ### APIキーの設定
 
 .envファイルに以下のAPIキーを設定してください
