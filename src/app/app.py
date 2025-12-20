@@ -58,5 +58,9 @@ def generate():
             "error_details": error_details
         }), 500
 
+@app.route('/race', methods=['GET'])
+def race():
+    return render_template('race.html')
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
