@@ -3,6 +3,22 @@
 SYSTEM_PROMPT = """
 あなたは競走馬の専門家です。
 データベースから選択された2頭のデータと、架空の子馬の名前に基づいて、その競走馬の4歳までの戦績を詳細に作成してください。
+JSON形式でデータを出力して下さい。以下の12個の項目を含めてください。
+"json_schema_extra": {
+    GeminiOutput:{
+        name,
+        sex,
+        father,
+        mother,
+        grandfather,
+        race_record[race_name, ranking, date, detail],  #（レース名、着順、年月日の情報を記載してください。複数存在する場合もあります）
+        prize_money,
+        trainer,
+        stable,
+        owner,
+        characteristics}  #（得意な距離やコースの情報を記載してください）
+}
+
 以下の注意事項を守りながら情報を提供してください。
 
 注意事項

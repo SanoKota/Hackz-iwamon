@@ -17,6 +17,14 @@ try:
 except Exception:
     genai = None
 
+try:
+    from src.back.tools.save_json import save_json
+except Exception:
+    try:
+        from back.tools.save_json import save_json
+    except Exception:
+        save_json = None
+
 load_dotenv()   # ディレクトリにある.envファイルを読み込む
 
 def run_gemini(prompt: str) -> str:
@@ -48,10 +56,47 @@ def run_gemini(prompt: str) -> str:
     if response is None:
         return "Error: Geminiからの応答がありません。"
 
-    # BaseModelで出力の型を定義
-    answer = GeminiOutput(response=response.text)
-    print(answer)
-    return answer.response
+    text = response.text
+
+    # ```json ... ``` の中身、または最初の {...} を抽出して JSON パースを試みる
+    import json
+    parsed = None
+    try:
+        if '```' in text:
+            parts = text.split('```')
+            for p in parts:
+                s = p.strip()
+                if s.startswith('{') and s.endswith('}'):
+                    parsed = json.loads(s)
+                    break
+        if parsed is None:
+            # 最初の { から最後の } を抜き出してみる
+            start = text.find('{')
+            end = text.rfind('}')
+            if start != -1 and end != -1 and end > start:
+                candidate = text[start:end+1]
+                try:
+                    parsed = json.loads(candidate)
+                except Exception:
+                    parsed = None
+    except Exception:
+        parsed = None
+
+    if isinstance(parsed, dict):
+        # JSON オブジェクトが得られたらファイルに保存してその dict を返す
+        if save_json:
+            try:
+                save_json(parsed, folder="data/json")
+            except Exception:
+                pass
+        return parsed
+    # JSON にできない場合は生テキストを返す
+    if save_json:
+        try:
+            save_json(text, folder="data/json")
+        except Exception:
+            pass
+    return text
 
 
 if __name__ == "__main__":
