@@ -46,38 +46,83 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Handle Form Submission
     const form = document.querySelector('form');
-    const hiddenPrompt = document.getElementById('hidden-prompt');
     const loader = document.getElementById('loader');
     const submitBtn = document.querySelector('button[type="submit"]');
 
     if (form) {
-        form.addEventListener('submit', (e) => {
-            // Get values
+        form.addEventListener('submit', async (e) => {
+            // 1. デフォルトのフォーム送信（画面遷移）を止める
+            e.preventDefault();
+
+            // 値の取得
             const sire = sireSelect.value;
             const dam = damSelect.value;
             const childName = document.getElementById('child-name').value;
 
-            // Simple validation
+            // バリデーション
             if (!sire || !dam || !childName) {
-                e.preventDefault();
                 alert('全ての項目を入力してください。');
                 return;
             }
 
-            // Construct formatted prompt
-            // Using the requested format: "Father: {sire}, Mother: {dam}, Child: {child_name}..."
-            const formattedPrompt = `父馬: ${sire}\n母馬: ${dam}\n子馬の名前: ${childName}\n\n上記の血統を持つ競走馬の4歳までの戦績と特徴を作成してください。`;
-            
-            // Set hidden input value
-            hiddenPrompt.value = formattedPrompt;
-
-            // Show loader
+            // UI操作（ローディング表示など）
             loader.style.display = 'flex';
             submitBtn.style.opacity = '0.7';
             submitBtn.textContent = 'Generating...';
             submitBtn.disabled = true;
 
-            // Allow form to submit naturally
+            // 送信するJSONデータを作成
+            const payload = {
+                sire_name: sire,
+                dam_name: dam,
+                child_name: childName
+            };
+
+            try {
+                // fetchでPythonにJSONを投げる
+                const response = await fetch('/api/generate', { // Pythonのエンドポイント
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json', // JSONであることを明示
+                    },
+                    body: JSON.stringify(payload) // オブジェクトを文字列化
+                });
+
+                if (!response.ok) {
+                    throw new Error('Server Error');
+                }
+
+                // Pythonからの返答を受け取る
+                const data = await response.json();
+
+                // 結果を画面に表示する
+                if (data.status === 'success' && data.result) {
+                    const responseArea = document.querySelector('.response-area');
+                    const responseContent = document.querySelector('.response-content');
+
+                    if (responseArea && responseContent) {
+                        // Markdownをレンダリングして表示
+                        responseContent.innerHTML = marked.parse(data.result);
+                        responseArea.style.display = 'block';
+
+                        // スクロールして結果を見せる
+                        responseArea.scrollIntoView({ behavior: 'smooth' });
+                    }
+                } else {
+                    console.error('Error in response:', data);
+                    alert('生成に失敗しました: ' + (data.message || 'Unknown error'));
+                }
+
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error');
+            } finally {
+                // UIを元に戻す
+                loader.style.display = 'none';
+                submitBtn.style.opacity = '1';
+                submitBtn.textContent = 'Generate';
+                submitBtn.disabled = false;
+            }
         });
     }
 });

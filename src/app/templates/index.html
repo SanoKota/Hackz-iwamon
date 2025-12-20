@@ -62,26 +62,18 @@
         </div>
 
         <!-- Result Display -->
-        {% if response %}
-        <div class="response-area">
+        <div class="response-area" style="display: none;">
             <div class="glass-card">
                 <div class="response-title">Generation Result</div>
-                <div class="response-content">{{ response }}</div>
+                <div class="response-content"></div>
             </div>
         </div>
-        {% endif %}
     </div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const responseContent = document.querySelector('.response-content');
-            if (responseContent) {
-                const rawText = responseContent.textContent;
-                responseContent.innerHTML = marked.parse(rawText);
-            }
-        });
+        // marked.js is available globally
     </script>
 </body>
 
