@@ -18,7 +18,7 @@ def _make_filename(prefix: Optional[str] = None) -> str:
 	return f"{ts}_{uid}.json"
 
 
-def save_json(data: Any, folder: str = "data/json") -> str:
+def save_json(data: Any, filename: str = "data/json/geminioutput.json") -> str:
 	"""Save `data` (dict or JSON-serializable object) to a .json file.
 
 	- If `data` is a str, attempt to parse as JSON; otherwise wrap as {"response": data}.
@@ -34,9 +34,7 @@ def save_json(data: Any, folder: str = "data/json") -> str:
 		except Exception:
 			obj = {"response": data}
 
-	filename = 'geminioutput.json'
-
-	path = os.path.join(folder, filename)
+	path = os.path(filename)
 	with open(path, "w", encoding="utf-8") as f:
 		json.dump(obj, f, ensure_ascii=False, indent=2)
 
