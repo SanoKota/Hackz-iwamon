@@ -7,29 +7,78 @@ import traceback
 # パス設定
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from src.back.gate.function_gate import RunGemini
-import csv
+from src.back.db.supabase_client import select_data
 
 # アップロードフォルダ設定
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, 'requests')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-app = Flask(__name__)
+# 監視対象のJSONファイルパス (../../data/json/geminioutput.json)
+JSON_OUTPUT_PATH = os.path.abspath(os.path.join(BASE_DIR, '../../data/json/geminioutput.json'))
 
-# CSV読み込みヘルパー
-def load_csv_data(filename):
-    filepath = os.path.join(BASE_DIR, '../../sample_data', filename)
-    data = []
-    if os.path.exists(filepath):
-        with open(filepath, 'r', encoding='utf-8') as f:
-            reader = csv.DictReader(f)
-            for row in reader:
-                data.append(row)
-    return data
+app = Flask(__name__)
 
 @app.route('/', methods=['GET'])
 def index():
     return render_template('index.html')
+
+# ファイルの更新確認用API
+@app.route('/api/check_update', methods=['GET'])
+def check_update():
+    try:
+        # ファイルが存在しない場合
+        if not os.path.exists(JSON_OUTPUT_PATH):
+            return jsonify({"status": "waiting", "message": "File not found"}), 404
+
+        # ファイルの最終更新日時を取得
+        mtime = os.path.getmtime(JSON_OUTPUT_PATH)
+
+        # クライアントから送られてきた「前回の更新日時」を取得
+        client_last_mtime = request.args.get('last_mtime', type=float)
+
+        # 更新されていない場合はデータの中身を返さない
+        if client_last_mtime and mtime <= client_last_mtime:
+            return jsonify({"status": "not_modified", "mtime": mtime})
+
+        # 更新されている場合、ファイルを読み込んで整形して返す
+        with open(JSON_OUTPUT_PATH, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        # JSONデータをMarkdownテキストに整形
+        name = data.get('name', 'Unknown Horse')
+        characteristics = data.get('characteristics', '')
+        race_record = data.get('race_record', [])
+
+        response_text = f"# {name}\n\n"
+        if characteristics:
+            response_text += f"**特徴**: {characteristics}\n\n"
+        
+        response_text += "## 戦績\n"
+        if race_record:
+            for race in race_record:
+                # 辞書型でない場合のハンドリングも含める
+                if isinstance(race, dict):
+                    r_name = race.get('race_name', '-')
+                    rank = race.get('ranking', '-')
+                    date = race.get('date', '-')
+                    detail = race.get('detail', '')
+                    response_text += f"- **{r_name}** ({date}): {rank}着\n"
+                    if detail:
+                        response_text += f"  - {detail}\n"
+                else:
+                    response_text += f"- {str(race)}\n"
+        else:
+            response_text += "戦績なし\n"
+
+        return jsonify({
+            "status": "updated",
+            "mtime": mtime,
+            "result": response_text
+        })
+
+    except Exception as e:
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 # JSからのデータ処理
 @app.route('/api/generate', methods=['POST'])
@@ -42,19 +91,12 @@ def generate():
         filename = f"request_horse.json"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
         with open(filepath, 'w') as f:
-            json.dumps(data, f, ensure_ascii=False, indent=4)
+            json.dump(data, f, ensure_ascii=False, indent=4)
         
-        # 値を取り出し
-        sire = data.get('sire_name')
-        dam = data.get('dam_name')
-        child_name = data.get('child_name')
-
-        # プロンプト組み立て（テスト）
-        prompt = f"父:{sire}, 母:{dam}, 子:{child_name} の血統を持つ馬の戦績を考えて"
-
         # Geminiを実行
+        # ※ ここでRunGeminiがgeminioutput.jsonを更新することを想定しています
         gemini = RunGemini()
-        output = gemini.execute(prompt)
+        output = gemini.execute()
         response_text = output.response
 
         return jsonify({
@@ -68,7 +110,7 @@ def generate():
             "status": "error",
             "message": str(e),
             "error_details": error_details
-        }), 500
+        }, 500)
 
 @app.route('/race', methods=['GET'])
 def race():
@@ -76,32 +118,46 @@ def race():
 
 @app.route('/gallery', methods=['GET'])
 def gallery():
-    horses_data = load_csv_data('horses.csv')
+    horses_data = select_data('horse')
+    if horses_data is None:
+        horses_data = []
+    
     horses = []
     for h in horses_data:
-        # CSV structure: horse_id,name,sex,father,mother,mother_father
+        # DB columns: id, name, father, mother, mother_father, etc.
+        name = h.get('name', 'Unknown')
+        father = h.get('father', '')
+        mother = h.get('mother', '')
+        mother_father = h.get('mother_father', '')
+        
         horses.append({
-            "id": h['horse_id'],
-            "name": h['name'],
-            "sire": f"{h['father']} (Father)",
-            "dam": f"{h['mother']} (Mother)",
-            "image": f"https://placehold.co/600x400/1e293b/38bdf8?text={h['name']}",
-            "description": f"父: {h['father']}, 母: {h['mother']}, 母父: {h['mother_father']}。幻の名馬。"
+            "id": h.get('id'), # Assuming DB uses 'id' as primary key
+            "name": name,
+            "sire": f"{father} (父)",
+            "dam": f"{mother} (母)",
+            "image": f"https://placehold.co/600x400/1e293b/38bdf8?text={name}",
+            "description": f"父: {father}, 母: {mother}, 母父: {mother_father}。幻の名馬。"
         })
     return render_template('gallery.html', horses=horses)
 
 @app.route('/api/horses', methods=['GET'])
 def get_horses():
     try:
-        horses_data = load_csv_data('horses.csv')
-        # Frontend expects a simple list or specific structure
-        # Let's return formatted data similar to what's used in gallery
+        horses_data = select_data('horse')
+        if horses_data is None:
+            horses_data = []
+            
         formatted_horses = []
         for h in horses_data:
+            name = h.get('name', 'Unknown')
+            father = h.get('father', '?')
+            mother = h.get('mother', '?')
+            
             formatted_horses.append({
-                "id": h['horse_id'],
-                "name": h['name'],
-                "value": f"{h['name']} ({h['father']} x {h['mother']})" # Value for race selection
+                "id": h.get('id'),
+                "name": name,
+                "value": name,
+                "sex": h.get('sex', 'Unknown')
             })
         return jsonify({"status": "success", "horses": formatted_horses})
     except Exception as e:
@@ -110,8 +166,20 @@ def get_horses():
 @app.route('/api/races', methods=['GET'])
 def get_races():
     try:
-        races_data = load_csv_data('races.csv')
-        return jsonify({"status": "success", "races": races_data})
+        races_data = select_data('race')
+        if races_data is None:
+            races_data = []
+        
+        formatted_races = []
+        for r in races_data:
+            formatted_races.append({
+                "race_id": r.get('race_id') or r.get('id'),
+                "race_name": r.get('race_name') or r.get('name', 'Unknown Race'),
+                "racetrack": r.get('racetrack') or r.get('course', 'Unknown'),
+                "track_type": r.get('ground') or r.get('track_type', 'Turf'),
+                "distance": r.get('distance', '2400')
+            })
+        return jsonify({"status": "success", "races": formatted_races})
     except Exception as e:
         return jsonify({"status": "error", "message": str(e)}), 500
 
@@ -127,39 +195,43 @@ def run_race():
         
         entries = selected_horses
         
-        # Load race info
-        races_data = load_csv_data('races.csv')
+        # Load race info from DB
+        races_data = select_data('race')
+        if races_data is None:
+            races_data = []
+            
         target_race = None
         
         if race_id:
             for r in races_data:
-                if str(r.get('race_id')) == str(race_id):
+                # DB column might be 'id' or 'race_id'. Trying both.
+                r_id = r.get('race_id') or r.get('id')
+                if str(r_id) == str(race_id):
                     target_race = r
                     break
         
         # Default if not found or not specified
         if not target_race:
              target_race = races_data[0] if races_data else {"race_name": "Dream Race", "distance": "2400", "course": "Tokyo", "track_type": "Turf"}
+             
+        # Strip pedigree info from names (e.g. "Name (Sire x Dam)" -> "Name")
+        cleaned_entries = [e.split(' (')[0] for e in entries]
 
-        # Construct Prompt
-        prompt = f"""
-        以下の伝説の競走馬たちによる「{target_race['race_name']}」の実況中継を行ってください。
-        
-        出走馬: {', '.join(entries)}
-        
-        条件:
-        - 舞台: {target_race['course']} {target_race['track_type']} {target_race['distance']}m
-        - 天候: 晴良馬場
-        
-        指示:
-        - スタートからゴールまで、熱狂的な実況スタイルで描写してください。
-        - 各馬の特徴（脚質など）を反映させてください。
-        - 最後は接戦の末、1頭が優勝します。順位も決めてください。
-        """
+        # Save request_dream.json
+        try:
+            dream_request_data = {
+                "race_name": target_race.get('race_name') or target_race.get('name', 'Unknown Race'),
+                "entries": cleaned_entries
+            }
+            dream_json_path = os.path.join(UPLOAD_FOLDER, "request_dream.json")
+            with open(dream_json_path, 'w', encoding='utf-8') as f:
+                json.dump(dream_request_data, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"Error saving request_dream.json: {e}")
 
         # Execute Gemini
         gemini = RunGemini()
-        output = gemini.execute(prompt=prompt)
+        output = gemini.execute()
         
         return jsonify({
             "status": "success",
