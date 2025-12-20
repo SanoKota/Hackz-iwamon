@@ -8,6 +8,9 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Mochiy+Pop+One&family=Noto+Sans+JP:wght@500;700;900&family=Roboto:wght@700;900&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -25,9 +28,9 @@
         </label>
         <div class="menu-drawer">
             <nav>
-                <a href="/">Horse Generator</a>
-                <a href="/race">Dream Race</a>
-                <a href="/gallery">Horse Gallery</a>
+                <a href="/">競走馬作成</a>
+                <a href="/race">ドリームレース</a>
+                <a href="/gallery">名馬鑑賞</a>
             </nav>
         </div>
     </div>
@@ -35,8 +38,8 @@
     <div class="container">
         <!-- Title / Header -->
         <h1>All-Star Dream Trophy</h1>
-        <p class="subtitle" style="text-align: center; color: #cbd5e1; margin-bottom: 2rem;">
-            Legends collide. Who is the strongest?
+        <p class="subtitle" style="text-align: center; color: gray; margin-bottom: 2rem;">
+            伝説の継承。最強は誰だ。
         </p>
 
         <!-- Control Area -->
@@ -46,11 +49,11 @@
             <div id="race-selection-area"
                 style="margin-bottom: 2rem; border-bottom: 1px solid #475569; padding-bottom: 1rem;">
                 <div class="selection-header" style="margin-bottom: 0.5rem;">
-                    <h3 style="margin: 0; color: #fff;">Race Condition</h3>
+                    <h3 style="margin: 0; color: #fff;">レース条件</h3>
                 </div>
                 <select id="race-selector"
                     style="width: 100%; padding: 0.8rem; border-radius: 8px; border: 1px solid #475569; background: #1e293b; color: white; font-size: 1rem;">
-                    <option value="" disabled selected>Select a Race...</option>
+                    <option value="" disabled selected>レースを選択してください...</option>
                 </select>
             </div>
 
@@ -58,10 +61,10 @@
             <div id="horse-selection-area">
                 <div class="selection-header"
                     style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h3 style="margin: 0; color: #fff;">Entry Horses</h3>
+                    <h3 style="margin: 0; color: #fff;">出走馬選択</h3>
                     <div class="selection-controls">
-                        <button type="button" id="select-random-btn" class="small-btn">Random 12</button>
-                        <button type="button" id="clear-btn" class="small-btn secondary">Clear</button>
+                        <button type="button" id="select-random-btn" class="small-btn">ランダム12頭</button>
+                        <button type="button" id="clear-btn" class="small-btn secondary">クリア</button>
                     </div>
                 </div>
                 <div class="horse-grid" id="horse-grid">
@@ -71,14 +74,17 @@
 
             <div style="text-align: center; margin-top: 2rem;">
                 <p style="margin-bottom: 1.5rem;">
-                    Click the button below to simulate a race between selected horses.
+                    以下のボタンをクリックして、選択した馬によるドリームレースを開催します。
                 </p>
                 <button id="start-race-btn">
-                    Start Dream Race
+                    ファンファーレ
                 </button>
                 <!-- Loading Spinner -->
                 <div id="loader" class="loader">
                     <div class="spinner"></div>
+                    <p
+                        style="margin-top: 10px; color: var(--accent-gold); font-family: 'Roboto Condensed', sans-serif;">
+                        レース開催中...</p>
                 </div>
             </div>
         </div>
