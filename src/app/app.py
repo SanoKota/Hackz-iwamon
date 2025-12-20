@@ -1,10 +1,17 @@
 from flask import Flask, render_template, request, jsonify
 import sys
 import os
+import json
+from datetime import datetime
 
 # パス設定
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
 from src.back.gate.function_gate import RunGemini
+
+# アップロードフォルダ設定
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, 'requests')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 app = Flask(__name__)
 
@@ -18,6 +25,13 @@ def generate():
     try:
         # JSから送られたJSONを受け取る
         data = request.json
+
+        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+        filename = f"request_{timestamp}.json"
+        filepath = os.path.join(UPLOAD_FOLDER, filename)
+
+        with open(filepath, 'w') as f:
+            json.dump(data, f, ensure_ascii=False, indent=4)
         
         # 値を取り出し
         sire = data.get('sire_name')
@@ -38,9 +52,11 @@ def generate():
         })
 
     except Exception as e:
+        error_details = traceback.format_exc()
         return jsonify({
             "status": "error",
-            "message": str(e)
+            "message": str(e),
+            "error_details": error_details
         }), 500
 
 if __name__ == '__main__':
