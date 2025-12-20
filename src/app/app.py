@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, jsonify
 import sys
 import os
 import json
-from datetime import datetime
 
 # パス設定
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -26,12 +25,12 @@ def generate():
         # JSから送られたJSONを受け取る
         data = request.json
 
-        timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
-        filename = f"request_{timestamp}.json"
+        # JSONファイルを保存
+        filename = f"request_horse.json"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
-
-        with open(filepath, 'w') as f:
-            json.dump(data, f, ensure_ascii=False, indent=4)
+        with open(filepath, 'a') as f:
+            json_str = json.dumps(data, ensure_ascii=False, indent=4)
+            f.write(json_str + '\n')
         
         # 値を取り出し
         sire = data.get('sire_name')
