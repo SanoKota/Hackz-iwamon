@@ -7,6 +7,6 @@ __pycache__
 .env
 
 # template/
-request_*.json
-sample_data/
-*test.py
+
+*.json
+*.csv
