@@ -25,17 +25,17 @@
         </label>
         <div class="menu-drawer">
             <nav>
-                <a href="/">Horse Generator</a>
-                <a href="/race">Dream Race</a>
-                <a href="/gallery">Horse Gallery</a>
+                <a href="/">競走馬作成</a>
+                <a href="/race">ドリームレース</a>
+                <a href="/gallery">名馬鑑賞</a>
             </nav>
         </div>
     </div>
 
     <div class="container gallery-container">
         <!-- Title / Header -->
-        <h1>Horse Gallery</h1>
-        <p class="subtitle">Registered Legendary Horses</p>
+        <h1>殿堂入り馬一覧</h1>
+        <p class="subtitle">歴代の名馬たち</p>
 
         <!-- Gallery Grid -->
         <div class="gallery-grid">
@@ -47,8 +47,8 @@
                 <div class="horse-info">
                     <h2>{{ horse.name }}</h2>
                     <div class="pedigree">
-                        <span class="label">Sire:</span> {{ horse.sire }}<br>
-                        <span class="label">Dam:</span> {{ horse.dam }}
+                        <span class="label">父:</span> {{ horse.sire }}<br>
+                        <span class="label">母:</span> {{ horse.dam }}
                     </div>
                     <p class="description">{{ horse.description }}</p>
                 </div>

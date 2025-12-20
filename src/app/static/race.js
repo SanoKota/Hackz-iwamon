@@ -123,9 +123,9 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             // UI Updates
-            startBtn.textContent = 'Race in Progress...';
+            startBtn.textContent = "スタートしました！"; // Classic call
             startBtn.disabled = true;
-            startBtn.style.opacity = '0.7';
+            startBtn.style.opacity = '0.8';
             loader.style.display = 'flex';
             responseArea.style.display = 'none';
 
@@ -147,16 +147,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     responseArea.style.display = 'block';
                     responseArea.scrollIntoView({ behavior: 'smooth' });
                 } else {
-                    alert('Race simulation failed: ' + data.message);
+                    alert('レースのシミュレーションに失敗しました: ' + data.message);
                 }
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('An error occurred during the race simulation.');
+                alert('レースシミュレーション中にエラーが発生しました。');
             } finally {
                 // Reset UI
                 loader.style.display = 'none';
-                startBtn.textContent = 'Start Dream Race';
+                startBtn.textContent = 'ファンファーレ';
                 startBtn.disabled = false;
                 startBtn.style.opacity = '1';
             }
