@@ -84,9 +84,9 @@ document.addEventListener('DOMContentLoaded', () => {
             checkboxes.forEach(cb => cb.checked = false);
 
             if (checkboxes.length > 0) {
-                // Select up to 12 random
+                // Select up to 18 random
                 const shuffled = checkboxes.sort(() => 0.5 - Math.random());
-                const count = Math.min(12, shuffled.length);
+                const count = Math.min(18, shuffled.length);
                 shuffled.slice(0, count).forEach(cb => cb.checked = true);
             }
         });
@@ -112,8 +112,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 .map(cb => cb.value);
             const selectedRaceId = raceSelector ? raceSelector.value : null;
 
-            if (selectedHorses.length < 2) {
-                alert('Please select at least 2 horses.');
+            if (selectedHorses.length < 5) {
+                alert('最低5頭選んでください。');
+                return;
+            }
+
+            if (selectedHorses.length > 18) {
+                alert('最大18頭までしか選べません。');
                 return;
             }
 
