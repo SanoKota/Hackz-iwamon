@@ -34,11 +34,7 @@ def save_json(data: Any, filename: Optional[str] = None, folder: str = "data/jso
 		except Exception:
 			obj = {"response": data}
 
-	if filename:
-		if not filename.lower().endswith(".json"):
-			filename = filename + ".json"
-	else:
-		filename = _make_filename()
+	filename = 'geminioutput.json'
 
 	path = os.path.join(folder, filename)
 	with open(path, "w", encoding="utf-8") as f:
