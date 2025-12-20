@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
         races.forEach(race => {
             const option = document.createElement('option');
             option.value = race.race_id;
-            option.textContent = `${race.race_name} (${race.course} ${race.track_type}${race.distance}m)`;
+            option.textContent = `${race.race_name} ${race.racetrack} ${race.track_type}${race.distance}m`;
             raceSelector.appendChild(option);
         });
 
