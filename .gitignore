@@ -8,3 +8,5 @@ __pycache__
 
 # template/
 request_*.json
+sample_data/
+*test.py
