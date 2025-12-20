@@ -85,17 +85,53 @@ def save_json_response(text: str) -> dict | str:
         parsed = None
 
     if isinstance(parsed, dict):
-        # JSON オブジェクトが得られたらファイルに保存してその dict を返す
-        if save_json:
+            # JSON オブジェクトが得られたら、もし 'response' フィールドに
+            # JSON コードブロックや JSON テキストが含まれていればそれを優先して抽出する。
             try:
-                save_json(parsed, filename="data/json/geminioutput.json")
+                inner = parsed.get("response")
             except Exception:
-                pass
-        return parsed
+                inner = None
+            if isinstance(inner, str):
+                # attempt to extract JSON from the embedded response string
+                try_parsed = None
+                if '```' in inner:
+                    parts = inner.split('```')
+                    for p in parts:
+                        s = p.strip()
+                        if s.startswith('{') and s.endswith('}'):
+                            try:
+                                try_parsed = json.loads(s)
+                            except Exception:
+                                try_parsed = None
+                            break
+                if try_parsed is None:
+                    start = inner.find('{')
+                    end = inner.rfind('}')
+                    if start != -1 and end != -1 and end > start:
+                        candidate = inner[start:end+1]
+                        try:
+                            try_parsed = json.loads(candidate)
+                        except Exception:
+                            try_parsed = None
+                if isinstance(try_parsed, dict):
+                    if save_json:
+                        try:
+                            save_json(try_parsed, folder="data/json")
+                        except Exception:
+                            pass
+                    return try_parsed
+
+            # 上記で内包 JSON が見つからなければ通常通り保存して返す
+            if save_json:
+                try:
+                    save_json(parsed, folder="data/json")
+                except Exception:
+                    pass
+            return parsed
     # JSON にできない場合は生テキストを返す
     if save_json:
         try:
-            save_json(text, filename="data/json/geminioutput.json")
+            save_json(text, folder="data/horse")
         except Exception:
             pass
     return text
