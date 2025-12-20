@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Horse Gallery | Hackz-iwamon</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+</head>
+
+<body>
+    <!-- Background Elements -->
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+
+    <!-- Hamburger Menu -->
+    <div class="menu-container">
+        <input type="checkbox" id="menu-toggle">
+        <label for="menu-toggle" class="menu-button">
+            <span></span>
+            <span></span>
+            <span></span>
+        </label>
+        <div class="menu-drawer">
+            <nav>
+                <a href="/">Horse Generator</a>
+                <a href="/race">Dream Race</a>
+                <a href="/gallery">Horse Gallery</a>
+            </nav>
+        </div>
+    </div>
+
+    <div class="container gallery-container">
+        <!-- Title / Header -->
+        <h1>Horse Gallery</h1>
+        <p class="subtitle">Registered Legendary Horses</p>
+
+        <!-- Gallery Grid -->
+        <div class="gallery-grid">
+            {% for horse in horses %}
+            <div class="glass-card horse-card">
+                <div class="horse-image">
+                    <img src="{{ horse.image }}" alt="{{ horse.name }}">
+                </div>
+                <div class="horse-info">
+                    <h2>{{ horse.name }}</h2>
+                    <div class="pedigree">
+                        <span class="label">Sire:</span> {{ horse.sire }}<br>
+                        <span class="label">Dam:</span> {{ horse.dam }}
+                    </div>
+                    <p class="description">{{ horse.description }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+
+</html>
