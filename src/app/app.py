@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify
 import sys
 import os
 import json
+import traceback
 
 # パス設定
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -28,9 +29,8 @@ def generate():
         # JSONファイルを保存
         filename = f"request_horse.json"
         filepath = os.path.join(UPLOAD_FOLDER, filename)
-        with open(filepath, 'a') as f:
-            json_str = json.dumps(data, ensure_ascii=False, indent=4)
-            f.write(json_str + '\n')
+        with open(filepath, 'w') as f:
+            json.dumps(data, f, ensure_ascii=False, indent=4)
         
         # 値を取り出し
         sire = data.get('sire_name')
@@ -42,7 +42,7 @@ def generate():
 
         # Geminiを実行
         gemini = RunGemini()
-        output = gemini.execute(prompt=prompt)
+        output = gemini.execute(prompt)
         response_text = output.response
 
         return jsonify({
