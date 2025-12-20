@@ -1,43 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // 辞書
-    const sires = [
-        { name: "ディープインパクト", id: "deep_impact" },
-        { name: "オルフェーヴル", id: "orfevre" },
-        { name: "キタサンブラック", id: "kitasan_black" },
-        { name: "ロードカナロア", id: "lord_kanaloa" },
-        { name: "エピファネイア", id: "epiphaneia" },
-        { name: "キングカメハメハ", id: "king_kamehameha" },
-        { name: "ハーツクライ", id: "hearts_cry" },
-        { name: "ゴールドシップ", id: "gold_ship" },
-        { name: "コントレイル", id: "contrail" },
-        { name: "ドゥラメンテ", id: "duramente" }
-    ];
-
-    const dams = [
-        { name: "アーモンドアイ", id: "almond_eye" },
-        { name: "ジェンティルドンナ", id: "gentildonna" },
-        { name: "ブエナビスタ", id: "buena_vista" },
-        { name: "クロノジェネシス", id: "chrono_genesis" },
-        { name: "リスグラシュー", id: "lys_gracieux" },
-        { name: "グランアレグリア", id: "gran_alegria" },
-        { name: "ウォッカ", id: "vodka" },
-        { name: "ダイワスカーレット", id: "daiwa_scarlet" },
-        { name: "エアグルーヴ", id: "air_groove" },
-        { name: "シーザリオ", id: "cesario" }
-    ];
-
     const sireSelect = document.getElementById('sire');
     const damSelect = document.getElementById('dam');
 
-    if (sireSelect && damSelect) {
-        populateSelect(sireSelect, sires);
-        populateSelect(damSelect, dams);
-    }
+    // Fetch horse data from API
+    fetch('/api/horses')
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const horses = data.horses;
+                if (sireSelect && damSelect) {
+                    // Filter by sex (assuming '牡' = Male, '牝' = Female)
+                    const sires = horses.filter(h => h.sex === '牡');
+                    const dams = horses.filter(h => h.sex === '牝');
+
+                    populateSelect(sireSelect, sires);
+                    populateSelect(damSelect, dams);
+                }
+            } else {
+                console.error('Failed to load horses:', data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching horse data:', error);
+        });
 
     function populateSelect(element, data) {
         data.forEach(horse => {
             const option = document.createElement('option');
-            option.value = horse.name; // Use name directly for the prompt
+            option.value = horse.name;
             option.textContent = horse.name;
             element.appendChild(option);
         });
