@@ -7,10 +7,10 @@ from dotenv import load_dotenv
 
 try:
     from src.back.definition.prompt import SYSTEM_PROMPT
-    from src.back.schema.new_horse import GeminiInput, GeminiOutput
+    from src.back.definition.def_gemini import GeminiInput, GeminiOutput
 except Exception:
     from src.back.definition.prompt import SYSTEM_PROMPT
-    from src.back.schema.new_horse import GeminiInput, GeminiOutput
+    from src.back.definition.def_gemini import GeminiInput, GeminiOutput
 
 try:
     from google import genai
@@ -37,12 +37,16 @@ def run_gemini(prompt: str) -> str:
     if genai is None:
         return "Error: google-genai ライブラリがインストールされていません。pip install google-genai を実行してください。"
 
+    response = None
     client = genai.Client(api_key=api_key)
 
     response = client.models.generate_content(
         model="gemini-2.5-flash",
         contents=prompt,
     )
+
+    if response is None:
+        return "Error: Geminiからの応答がありません。"
 
     # BaseModelで出力の型を定義
     answer = GeminiOutput(response=response.text)

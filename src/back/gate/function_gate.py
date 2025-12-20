@@ -1,5 +1,5 @@
 from src.back.core.run_gemini import run_gemini
-from src.back.schema.new_horse import GeminiInput, GeminiOutput
+from src.back.definition.def_gemini import GeminiInput, GeminiOutput
 
 class RunGemini():
     def execute(self, prompt: str) -> GeminiOutput:
