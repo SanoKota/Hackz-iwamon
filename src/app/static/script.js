@@ -9,9 +9,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (data.status === 'success') {
                 const horses = data.horses;
                 if (sireSelect && damSelect) {
-                    // Filter by sex (assuming '牡' = Male, '牝' = Female)
-                    const sires = horses.filter(h => h.sex === '牡');
-                    const dams = horses.filter(h => h.sex === '牝');
+                    const sires = horses.filter(h => h.sex === '牡'); // 父
+                    const dams = horses.filter(h => h.sex === '牝'); // 母
 
                     populateSelect(sireSelect, sires);
                     populateSelect(damSelect, dams);
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (form) {
         form.addEventListener('submit', async (e) => {
-            // デフォルトのフォーム送信（画面遷移）を止める
             e.preventDefault();
 
             // 値の取得
@@ -54,13 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // UI操作（ローディング表示など）
+            // UI操作（ローディング開始）
             loader.style.display = 'flex';
             submitBtn.style.opacity = '0.7';
             submitBtn.textContent = 'Generating...';
             submitBtn.disabled = true;
 
-            // 送信するJSONデータを作成
             const payload = {
                 sire_name: sire,
                 dam_name: dam,
@@ -68,61 +65,36 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                // 1. 生成リクエストを送信 (Wait for response which initiates the background process/file write)
-                const generateResponse = await fetch('/api/generate', {
+                // --- 修正箇所: ここで待機して結果を直接受け取る ---
+                const response = await fetch('/api/generate', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
 
-                if (!generateResponse.ok) {
-                    const errorMsg = await generateResponse.text();
-                    throw new Error('Generate Request Failed: ' + errorMsg);
-                }
+                const data = await response.json(); // JSONをパース
 
-                // 2. ポーリング開始
-                let lastMtime = 0;
-                const pollInterval = window.setInterval(async () => {
-                    try {
-                        const checkResponse = await fetch(`/api/check_update?last_mtime=${lastMtime}`);
-                        if (checkResponse.status === 404) {
-                            // File not ready yet, continue waiting
-                            return;
-                        }
+                if (response.ok && data.status === 'success') {
+                    // 成功したらすぐに表示処理へ
+                    const responseArea = document.querySelector('.response-area');
+                    const responseContent = document.querySelector('.response-content');
 
-                        const checkData = await checkResponse.json();
-
-                        if (checkData.status === 'updated') {
-                            // Update UI with new content
-                            lastMtime = checkData.mtime;
-                            const responseArea = document.querySelector('.response-area');
-                            const responseContent = document.querySelector('.response-content');
-
-                            if (responseArea && responseContent) {
-                                responseContent.innerHTML = marked.parse(checkData.result);
-                                responseArea.style.display = 'block';
-                                responseArea.scrollIntoView({ behavior: 'smooth' });
-                            }
-
-                            // Stop polling and reset UI
-                            clearInterval(pollInterval);
-                            resetUI();
-                        } else if (checkData.status === 'error') {
-                            throw new Error(checkData.message);
-                        }
-                        // if status is 'not_modified' or 'waiting', just continue to next tick
-
-                    } catch (pollError) {
-                        console.error('Polling Error:', pollError);
-                        clearInterval(pollInterval);
-                        showError(pollError.message);
-                        resetUI();
+                    if (responseArea && responseContent) {
+                        // marked.parse が使える前提
+                        responseContent.innerHTML = marked.parse(data.result);
+                        responseArea.style.display = 'block';
+                        responseArea.scrollIntoView({ behavior: 'smooth' });
                     }
-                }, 3000); // 3秒ごとにチェック
+                } else {
+                    // エラーの場合
+                    throw new Error(data.message || 'Unknown error occurred');
+                }
 
             } catch (error) {
                 console.error('Error:', error);
                 showError(error.message);
+            } finally {
+                // 成功しても失敗してもUIを元に戻す
                 resetUI();
             }
         });
@@ -130,7 +102,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function resetUI() {
             loader.style.display = 'none';
             submitBtn.style.opacity = '1';
-            submitBtn.textContent = '生産する'; // Back to localized text
+            submitBtn.textContent = '生産する';
             submitBtn.disabled = false;
         }
 

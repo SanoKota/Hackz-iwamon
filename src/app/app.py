@@ -1,8 +1,8 @@
 from flask import Flask, render_template, request, jsonify
-import sys
 import os
 import json
 import traceback
+import sys
 
 # パス設定
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../..')))
@@ -23,63 +23,6 @@ app = Flask(__name__)
 def index():
     return render_template('index.html')
 
-# ファイルの更新確認用API
-@app.route('/api/check_update', methods=['GET'])
-def check_update():
-    try:
-        # ファイルが存在しない場合
-        if not os.path.exists(JSON_OUTPUT_PATH):
-            return jsonify({"status": "waiting", "message": "File not found"}), 404
-
-        # ファイルの最終更新日時を取得
-        mtime = os.path.getmtime(JSON_OUTPUT_PATH)
-
-        # クライアントから送られてきた「前回の更新日時」を取得
-        client_last_mtime = request.args.get('last_mtime', type=float)
-
-        # 更新されていない場合はデータの中身を返さない
-        if client_last_mtime and mtime <= client_last_mtime:
-            return jsonify({"status": "not_modified", "mtime": mtime})
-
-        # 更新されている場合、ファイルを読み込んで整形して返す
-        with open(JSON_OUTPUT_PATH, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-
-        # JSONデータをMarkdownテキストに整形
-        name = data.get('name', 'Unknown Horse')
-        characteristics = data.get('characteristics', '')
-        race_record = data.get('race_record', [])
-
-        response_text = f"# {name}\n\n"
-        if characteristics:
-            response_text += f"**特徴**: {characteristics}\n\n"
-        
-        response_text += "## 戦績\n"
-        if race_record:
-            for race in race_record:
-                # 辞書型でない場合のハンドリングも含める
-                if isinstance(race, dict):
-                    r_name = race.get('race_name', '-')
-                    rank = race.get('ranking', '-')
-                    date = race.get('date', '-')
-                    detail = race.get('detail', '')
-                    response_text += f"- **{r_name}** ({date}): {rank}着\n"
-                    if detail:
-                        response_text += f"  - {detail}\n"
-                else:
-                    response_text += f"- {str(race)}\n"
-        else:
-            response_text += "戦績なし\n"
-
-        return jsonify({
-            "status": "updated",
-            "mtime": mtime,
-            "result": response_text
-        })
-
-    except Exception as e:
-        return jsonify({"status": "error", "message": str(e)}), 500
-
 # JSからのデータ処理
 @app.route('/api/generate', methods=['POST'])
 def generate():
@@ -97,7 +40,34 @@ def generate():
         # ※ ここでRunGeminiがgeminioutput.jsonを更新することを想定しています
         gemini = RunGemini()
         output = gemini.execute()
+        
+        # Consider structure data if response is None
         response_text = output.response
+        if not response_text:
+            # Format structured data to Markdown (Logic restored from previous check_update)
+            name = output.name or 'Unknown Horse'
+            characteristics = output.characteristics or ''
+            race_record = output.race_record or []
+
+            response_text = f"# {name}\n\n"
+            if characteristics:
+                response_text += f"**特徴**: {characteristics}\n\n"
+            
+            response_text += "## 戦績\n"
+            if race_record:
+                for race in race_record:
+                    if isinstance(race, dict):
+                        r_name = race.get('race_name', '-')
+                        rank = race.get('ranking', '-')
+                        date = race.get('date', '-')
+                        detail = race.get('detail', '')
+                        response_text += f"- **{r_name}** ({date}): {rank}着\n"
+                        if detail:
+                            response_text += f"  - {detail}\n"
+                    else:
+                        response_text += f"- {str(race)}\n"
+            else:
+                response_text += "戦績なし\n"
 
         return jsonify({
             "status": "success",
