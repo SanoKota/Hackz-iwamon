@@ -156,7 +156,8 @@ def get_horses():
             formatted_horses.append({
                 "id": h.get('id'),
                 "name": name,
-                "value": name
+                "value": name,
+                "sex": h.get('sex', 'Unknown')
             })
         return jsonify({"status": "success", "horses": formatted_horses})
     except Exception as e:
