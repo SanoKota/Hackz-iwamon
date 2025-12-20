@@ -4,8 +4,6 @@ from pydantic import BaseModel, Field
 
 class GeminiInput(BaseModel):
     prompt: str
-    # 馬2頭のデータ
-    # 仔馬の名前: str
 
 
 class GeminiOutput(BaseModel):
