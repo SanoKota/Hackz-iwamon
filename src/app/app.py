@@ -156,7 +156,7 @@ def get_horses():
             formatted_horses.append({
                 "id": h.get('id'),
                 "name": name,
-                "value": f"{name} ({father} x {mother})"
+                "value": name
             })
         return jsonify({"status": "success", "horses": formatted_horses})
     except Exception as e:
@@ -174,8 +174,8 @@ def get_races():
             formatted_races.append({
                 "race_id": r.get('race_id') or r.get('id'),
                 "race_name": r.get('race_name') or r.get('name', 'Unknown Race'),
-                "course": r.get('course', 'Unknown'),
-                "track_type": r.get('track_type', 'Turf'),
+                "racetrack": r.get('racetrack') or r.get('course', 'Unknown'),
+                "track_type": r.get('ground') or r.get('track_type', 'Turf'),
                 "distance": r.get('distance', '2400')
             })
         return jsonify({"status": "success", "races": formatted_races})
@@ -212,6 +212,21 @@ def run_race():
         # Default if not found or not specified
         if not target_race:
              target_race = races_data[0] if races_data else {"race_name": "Dream Race", "distance": "2400", "course": "Tokyo", "track_type": "Turf"}
+             
+        # Strip pedigree info from names (e.g. "Name (Sire x Dam)" -> "Name")
+        cleaned_entries = [e.split(' (')[0] for e in entries]
+
+        # Save request_dream.json
+        try:
+            dream_request_data = {
+                "race_name": target_race.get('race_name') or target_race.get('name', 'Unknown Race'),
+                "entries": cleaned_entries
+            }
+            dream_json_path = os.path.join(UPLOAD_FOLDER, "request_dream.json")
+            with open(dream_json_path, 'w', encoding='utf-8') as f:
+                json.dump(dream_request_data, f, ensure_ascii=False, indent=4)
+        except Exception as e:
+            print(f"Error saving request_dream.json: {e}")
 
         # Execute Gemini
         gemini = RunGemini()
