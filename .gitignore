@@ -7,4 +7,6 @@ __pycache__
 .env
 
 # template/
-request_*.json
+
+*.json
+*.csv
