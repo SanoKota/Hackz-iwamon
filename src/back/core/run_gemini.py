@@ -56,8 +56,10 @@ def run_gemini(prompt: str) -> str:
     if response is None:
         return "Error: Geminiからの応答がありません。"
 
-    text = response.text
+    return response.text
 
+
+def save_json_response(text: str) -> dict | str:
     # ```json ... ``` の中身、または最初の {...} を抽出して JSON パースを試みる
     import json
     parsed = None
@@ -86,14 +88,14 @@ def run_gemini(prompt: str) -> str:
         # JSON オブジェクトが得られたらファイルに保存してその dict を返す
         if save_json:
             try:
-                save_json(parsed, folder="data/json")
+                save_json(parsed, filename="data/json/geminioutput.json")
             except Exception:
                 pass
         return parsed
     # JSON にできない場合は生テキストを返す
     if save_json:
         try:
-            save_json(text, folder="data/json")
+            save_json(text, filename="data/json/geminioutput.json")
         except Exception:
             pass
     return text

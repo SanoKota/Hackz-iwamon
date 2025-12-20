@@ -159,6 +159,23 @@ def get_horse_detail(horse_name: str) -> dict:
 
     return horse_data[0], result_data    
 
+def get_race_detail(race_name: str) -> dict:
+    """
+    レース名からレースの詳細情報を取得する関数 
+    :param race_name: レース名
+    :return: レースの詳細情報
+    """
+    # Basic wrapper: try to fetch a single row for the given race
+    race_data = ""
+    data = select_data("race", columns="*")
+    # iterate rows until a matching name is found (1-based index)
+    for i in range(len(data)):
+        if data[i]['name'] == race_name:
+            i += 1
+            race_data = select_data("race", columns="*", row=i)  # 1-based index
+            break
+    return race_data[0] if race_data else {}
+
 
 if __name__ == "__main__":
     # テスト用コード（環境変数が未設定の場合は警告が出ます）
@@ -166,6 +183,8 @@ if __name__ == "__main__":
     # names = select_data(table_name="race")  # 適切なテーブル名に置き換えてください
     print(index)
     # print(len(names))
+    name = get_race_detail(race_name = "天皇賞(春)")
+    print(name)
     # insert_data("race_names", {'race_name': '天皇賞春', 'place_name': '京都競馬場', 'length': '3200', 'grass_or_dirt': 'grass', 'max_gate': '18'})  # 適切なテーブル名とデータに置き換えてください
     # names = select_data("race_names")  # 適切なテーブル名に置き換えてください
     # print(names)
