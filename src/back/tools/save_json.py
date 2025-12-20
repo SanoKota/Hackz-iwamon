@@ -18,7 +18,7 @@ def _make_filename(prefix: Optional[str] = None) -> str:
 	return f"{ts}_{uid}.json"
 
 
-def save_json(data: Any, filename: Optional[str] = None, folder: str = "data/json") -> str:
+def save_json(data: Any, folder: str = "data/json") -> str:
 	"""Save `data` (dict or JSON-serializable object) to a .json file.
 
 	- If `data` is a str, attempt to parse as JSON; otherwise wrap as {"response": data}.
