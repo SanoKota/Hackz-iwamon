@@ -32,13 +32,13 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Noto Sans JP', sans-serif;
-    /* Realistic Turf Background using gradients */
-    background:
-        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 20%),
-        /* Sun Glare */
-        linear-gradient(to bottom, #87CEEB 0%, #4682B4 40%, #2e7d32 40%, #1b4d2e 100%);
-    /* Sky to Turf */
+    /* Updated Background Image with Dark Overlay for Readability */
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url("background.png");
+    background-size: cover;
+    background-position: center;
     background-attachment: fixed;
+    background-repeat: no-repeat;
+
     color: var(--text-primary);
     min-height: 100vh;
     display: flex;
