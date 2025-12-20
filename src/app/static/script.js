@@ -1,29 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
     // 辞書
     const sires = [
-        { name: "ディープインパクト (Deep Impact)", id: "deep_impact" },
-        { name: "オルフェーヴル (Orfevre)", id: "orfevre" },
-        { name: "キタサンブラック (Kitasan Black)", id: "kitasan_black" },
-        { name: "ロードカナロア (Lord Kanaloa)", id: "lord_kanaloa" },
-        { name: "エピファネイア (Epiphaneia)", id: "epiphaneia" },
-        { name: "キングカメハメハ (King Kamehameha)", id: "king_kamehameha" },
-        { name: "ハーツクライ (Heart's Cry)", id: "hearts_cry" },
-        { name: "ゴールドシップ (Gold Ship)", id: "gold_ship" },
-        { name: "コントレイル (Contrail)", id: "contrail" },
-        { name: "ドゥラメンテ (Duramente)", id: "duramente" }
+        { name: "ディープインパクト", id: "deep_impact" },
+        { name: "オルフェーヴル", id: "orfevre" },
+        { name: "キタサンブラック", id: "kitasan_black" },
+        { name: "ロードカナロア", id: "lord_kanaloa" },
+        { name: "エピファネイア", id: "epiphaneia" },
+        { name: "キングカメハメハ", id: "king_kamehameha" },
+        { name: "ハーツクライ", id: "hearts_cry" },
+        { name: "ゴールドシップ", id: "gold_ship" },
+        { name: "コントレイル", id: "contrail" },
+        { name: "ドゥラメンテ", id: "duramente" }
     ];
 
     const dams = [
-        { name: "アーモンドアイ (Almond Eye)", id: "almond_eye" },
-        { name: "ジェンティルドンナ (Gentildonna)", id: "gentildonna" },
-        { name: "ブエナビスタ (Buena Vista)", id: "buena_vista" },
-        { name: "クロノジェネシス (Chrono Genesis)", id: "chrono_genesis" },
-        { name: "リスグラシュー (Lys Gracieux)", id: "lys_gracieux" },
-        { name: "グランアレグリア (Gran Alegria)", id: "gran_alegria" },
-        { name: "ウォッカ (Vodka)", id: "vodka" },
-        { name: "ダイワスカーレット (Daiwa Scarlet)", id: "daiwa_scarlet" },
-        { name: "エアグルーヴ (Air Groove)", id: "air_groove" },
-        { name: "シーザリオ (Cesario)", id: "cesario" }
+        { name: "アーモンドアイ", id: "almond_eye" },
+        { name: "ジェンティルドンナ", id: "gentildonna" },
+        { name: "ブエナビスタ", id: "buena_vista" },
+        { name: "クロノジェネシス", id: "chrono_genesis" },
+        { name: "リスグラシュー", id: "lys_gracieux" },
+        { name: "グランアレグリア", id: "gran_alegria" },
+        { name: "ウォッカ", id: "vodka" },
+        { name: "ダイワスカーレット", id: "daiwa_scarlet" },
+        { name: "エアグルーヴ", id: "air_groove" },
+        { name: "シーザリオ", id: "cesario" }
     ];
 
     const sireSelect = document.getElementById('sire');
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Error:', error);
-                
+
                 // 画面に詳細を表示する（alertだと読みづらいので、画面内に表示するのがおすすめ）
                 const resultElement = document.getElementById('response-content'); // 結果表示エリア
                 if (resultElement) {
