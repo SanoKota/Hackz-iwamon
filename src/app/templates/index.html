@@ -1,26 +1,88 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gemini App</title>
+    <title>Horse Generator | Hackz-iwamon</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 </head>
-<body>
-    <h1>Gemini Chat</h1>
-    <form method="POST">
-        <label for="prompt">プロンプトを入力してください:</label><br>
-        <textarea name="prompt" id="prompt" rows="5" required></textarea><br>
-        <button type="submit">送信</button>
-    </form>
 
-    {% if response %}
-    <div class="response">
-        <h2>Geminiからの回答:</h2>
-        <div>{{ response }}</div>
+<body>
+    <!-- Background Elements -->
+    <div class="bg-circle circle-1"></div>
+    <div class="bg-circle circle-2"></div>
+
+    <div class="container">
+        <!-- Title / Header -->
+        <h1>Horse Generator</h1>
+
+        <!-- Main Form Card -->
+        <div class="glass-card">
+            <form method="POST">
+                <!-- Sire Selection -->
+                <div class="form-group">
+                    <label for="sire">父馬 (Sire)</label>
+                    <select id="sire" required>
+                        <option value="" disabled selected>父馬を選択してください</option>
+                        <!-- JavaScript will populate this -->
+                    </select>
+                </div>
+
+                <!-- Dam Selection -->
+                <div class="form-group">
+                    <label for="dam">母馬 (Dam)</label>
+                    <select id="dam" required>
+                        <option value="" disabled selected>母馬を選択してください</option>
+                        <!-- JavaScript will populate this -->
+                    </select>
+                </div>
+
+                <!-- Child Name Input -->
+                <div class="form-group">
+                    <label for="child-name">子馬の名前 (Foal Name)</label>
+                    <input type="text" id="child-name" placeholder="例: レジェンダリー" required autocomplete="off">
+                </div>
+
+                <!-- Hidden Input for Backend -->
+                <input type="hidden" name="prompt" id="hidden-prompt">
+
+                <!-- Generate Button -->
+                <button type="submit">
+                    Generate Legend
+                </button>
+
+                <!-- Loading Spinner -->
+                <div id="loader" class="loader">
+                    <div class="spinner"></div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Result Display -->
+        {% if response %}
+        <div class="response-area">
+            <div class="glass-card">
+                <div class="response-title">Generation Result</div>
+                <div class="response-content">{{ response }}</div>
+            </div>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const responseContent = document.querySelector('.response-content');
+            if (responseContent) {
+                const rawText = responseContent.textContent;
+                responseContent.innerHTML = marked.parse(rawText);
+            }
+        });
+    </script>
 </body>
+
 </html>
