@@ -158,6 +158,13 @@ input[type="text"]:focus {
     border-color: var(--text-gold);
 }
 
+/* Dropdown options styling */
+select option {
+    background: #1a1a1a;
+    color: #ffffff;
+    padding: 0.5rem;
+}
+
 /* Buttons - Realistic/Glossy */
 button {
     width: 100%;
