@@ -8,5 +8,5 @@ __pycache__
 
 # template/
 
-*.csv
 *.json
+*.csv
