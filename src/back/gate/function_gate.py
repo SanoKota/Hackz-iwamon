@@ -44,7 +44,7 @@ class RunGemini():
         print("Prompt prepared for Gemini (truncated):", input_data.prompt)
 
         # run_gemini は dict (parsed JSON) か文字列を返す
-        # result = run_gemini(input_data.prompt)
+        result = run_gemini(input_data.prompt)
 
         if isinstance(result, dict):
             return GeminiOutput(**result)

@@ -78,62 +78,81 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             try {
-                // fetchでPythonにJSONを投げる
-                const response = await fetch('/api/generate', { // Pythonのエンドポイント
+                // 1. 生成リクエストを送信 (Wait for response which initiates the background process/file write)
+                const generateResponse = await fetch('/api/generate', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json', // JSONであることを明示
-                    },
-                    body: JSON.stringify(payload) // オブジェクトを文字列化
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                if (!response.ok) {
-                    // エラーメッセージ取得
-                    const errorData = await response.json();
-                    const errorMsg = errorData.detail || errorData.message || '不明なサーバーエラー';
-                    throw new Error(errorMsg);
+                if (!generateResponse.ok) {
+                    const errorMsg = await generateResponse.text();
+                    throw new Error('Generate Request Failed: ' + errorMsg);
                 }
 
-                // Pythonからの返答を受け取る
-                const data = await response.json();
+                // 2. ポーリング開始
+                let lastMtime = 0;
+                const pollInterval = window.setInterval(async () => {
+                    try {
+                        const checkResponse = await fetch(`/api/check_update?last_mtime=${lastMtime}`);
+                        if (checkResponse.status === 404) {
+                            // File not ready yet, continue waiting
+                            return;
+                        }
 
-                // 結果を画面に表示する
-                if (data.status === 'success' && data.result) {
-                    const responseArea = document.querySelector('.response-area');
-                    const responseContent = document.querySelector('.response-content');
+                        const checkData = await checkResponse.json();
 
-                    if (responseArea && responseContent) {
-                        // Markdownをレンダリングして表示
-                        responseContent.innerHTML = marked.parse(data.result);
-                        responseArea.style.display = 'block';
+                        if (checkData.status === 'updated') {
+                            // Update UI with new content
+                            lastMtime = checkData.mtime;
+                            const responseArea = document.querySelector('.response-area');
+                            const responseContent = document.querySelector('.response-content');
 
-                        // スクロールして結果を見せる
-                        responseArea.scrollIntoView({ behavior: 'smooth' });
+                            if (responseArea && responseContent) {
+                                responseContent.innerHTML = marked.parse(checkData.result);
+                                responseArea.style.display = 'block';
+                                responseArea.scrollIntoView({ behavior: 'smooth' });
+                            }
+
+                            // Stop polling and reset UI
+                            clearInterval(pollInterval);
+                            resetUI();
+                        } else if (checkData.status === 'error') {
+                            throw new Error(checkData.message);
+                        }
+                        // if status is 'not_modified' or 'waiting', just continue to next tick
+
+                    } catch (pollError) {
+                        console.error('Polling Error:', pollError);
+                        clearInterval(pollInterval);
+                        showError(pollError.message);
+                        resetUI();
                     }
-                } else {
-                    console.error('Error in response:', data);
-                    alert('生成に失敗しました: ' + (data.message || 'Unknown error'));
-                }
+                }, 3000); // 3秒ごとにチェック
 
             } catch (error) {
                 console.error('Error:', error);
-
-                // 画面に詳細を表示する（alertだと読みづらいので、画面内に表示するのがおすすめ）
-                const resultElement = document.getElementById('response-content'); // 結果表示エリア
-                if (resultElement) {
-                    resultElement.innerHTML = `<pre style="color: red; text-align: left;">${error.message}</pre>`;
-                    document.getElementById('responseArea').style.display = 'block';
-                } else {
-                    // 表示エリアがなければアラートで出す
-                    alert('エラーが発生しました:\n' + error.message);
-                }
-            } finally {
-                // UIを元に戻す
-                loader.style.display = 'none';
-                submitBtn.style.opacity = '1';
-                submitBtn.textContent = 'Generate';
-                submitBtn.disabled = false;
+                showError(error.message);
+                resetUI();
             }
         });
+
+        function resetUI() {
+            loader.style.display = 'none';
+            submitBtn.style.opacity = '1';
+            submitBtn.textContent = '生産する'; // Back to localized text
+            submitBtn.disabled = false;
+        }
+
+        function showError(message) {
+            const resultElement = document.querySelector('.response-content');
+            const responseArea = document.querySelector('.response-area');
+            if (resultElement) {
+                resultElement.innerHTML = `<pre style="color: red; text-align: left;">${message}</pre>`;
+                if (responseArea) responseArea.style.display = 'block';
+            } else {
+                alert('エラーが発生しました:\n' + message);
+            }
+        }
     }
 });
