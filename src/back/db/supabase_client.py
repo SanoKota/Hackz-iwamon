@@ -120,44 +120,86 @@ def get_horse_detail(horse_name: str) -> dict:
     :param horse_name: 馬名
     :return: 馬の詳細情報
     """
-    # Basic wrapper: try to fetch a single row for the given horse name
-    horse_data = ""
+    # Optimized version that avoids redundant fetches and index errors
+    horse_data = {}
+    horse_index = -1
 
     data = select_data("horse", columns="*")
-    # iterate rows until a matching name is found (1-based index)
-    for i in range(len(data)):
-        if data[i]['name'] == horse_name:
-            i += 1
-            horse_data = select_data("horse", columns="*", row=i)  # 1-based index
-            horse_index = data[i]['horse_id'] - 1
+    if not data:
+        return {}, {}
+
+    for h in data:
+        if h.get('name') == horse_name:
+            horse_data = h
+            # The original code did -1, maintaining that logic though it's suspicious
+            # Assuming horse_id is present. If not, default to -1 to avoid matching anything
+            hid = h.get('horse_id')
+            if hid is not None:
+                 horse_index = hid - 1
             break
-    result_data = select_data("result", columns="*")
+    
+    if not horse_data:
+        return {}, {}
+        
+    result_data = select_data("result", columns="*") or []
     race_index = []
-    count = 0
     race_date = {}
-    for i in range(len(result_data)):
-        if result_data[i]['horse_id'] == horse_index:
-            race_index.append(result_data[i]['race_id'])
-            race_date[count] = result_data[i]
-            count += 1
-    race_data = select_data("race", columns="*")
-    race_result = {}
+    
+    # Filter results for this horse
+    # Note: result_data[i]['horse_id'] compared to horse_index
     count = 0
-    for i in range(len(race_data)):
-        if race_data[i]['race_id'] in race_index:
-            race_result[count] = race_data[i]
+    for r in result_data:
+        if r.get('horse_id') == horse_index:
+            race_index.append(r.get('race_id'))
+            race_date[count] = r
             count += 1
+            
+    race_data = select_data("race", columns="*") or []
+    race_result = {}
+    
+    # Match races
+    count_r = 0
+    for r in race_data:
+        if r.get('race_id') in race_index:
+            race_result[count_r] = r
+            count_r += 1
 
-    result_data = {}
-    for i in range(count):
-        rr = race_result.get(i, {})
-        rd = race_date.get(i, {})
-        merged = rr.copy() if isinstance(rr, dict) else {}
-        merged['rank'] = rd.get('rank')
-        merged['date'] = rd.get('date')
-        result_data[i] = merged
-
-    return horse_data[0], result_data    
+    # Merge data
+    # The original merged logic was slightly confusing (mapping by `count` index).
+    # Replicating it safely:
+    # `race_date` keys are 0..count-1
+    # `race_result` keys are 0..count_r-1
+    # Assuming count == count_r because they are filtered by same race_ids logic?
+    # Not necessarily if data is inconsistent, but strict logic implies:
+    # race_index has N IDs.
+    # race_result has M races (where M <= N because some IDs might not exist in race table)
+    # But `race_result` keys are 0..M-1.
+    # `race_date` keys are 0..N-1.
+    # if we loop range(count), we might miss if race is missing.
+    
+    # Let's map by race_id to be safer and cleaner, as proposed before.
+    
+    clean_results = {}
+    if race_data:
+        # Create a lookup for race: id -> data
+        race_lookup = {r.get('race_id'): r for r in race_data}
+        
+        # Iterate through the horse's results
+        idx = 0
+        for r in result_data:
+            if r.get('horse_id') == horse_index:
+                rid = r.get('race_id')
+                race_info = race_lookup.get(rid, {})
+                
+                # Merge
+                merged = race_info.copy()
+                merged['rank'] = r.get('rank')
+                merged['date'] = r.get('date')
+                
+                clean_results[idx] = merged
+                idx += 1
+                
+    return horse_data, clean_results
 
 def get_race_detail(race_name: str) -> dict:
     """
@@ -165,16 +207,16 @@ def get_race_detail(race_name: str) -> dict:
     :param race_name: レース名
     :return: レースの詳細情報
     """
-    # Basic wrapper: try to fetch a single row for the given race
-    race_data = ""
+    # Optimized version
     data = select_data("race", columns="*")
-    # iterate rows until a matching name is found (1-based index)
-    for i in range(len(data)):
-        if data[i]['name'] == race_name:
-            i += 1
-            race_data = select_data("race", columns="*", row=i)  # 1-based index
-            break
-    return race_data[0] if race_data else {}
+    if not data:
+        return {}
+        
+    for r in data:
+        if r.get('name') == race_name:
+            return r
+            
+    return {}
 
 
 if __name__ == "__main__":

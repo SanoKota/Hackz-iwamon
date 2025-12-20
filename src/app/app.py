@@ -231,11 +231,11 @@ def run_race():
 
         # Execute Gemini
         gemini = RunGemini()
-        output = gemini.execute()
+        output = gemini.dream_race()
         
         return jsonify({
             "status": "success",
-            "result": output.response
+            "result": output
         })
 
     except Exception as e:
