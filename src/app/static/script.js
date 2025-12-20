@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    // Famous Japanese Racehorses Data
+    // 辞書
     const sires = [
         { name: "ディープインパクト (Deep Impact)", id: "deep_impact" },
         { name: "オルフェーヴル (Orfevre)", id: "orfevre" },
@@ -26,7 +26,6 @@ document.addEventListener('DOMContentLoaded', () => {
         { name: "シーザリオ (Cesario)", id: "cesario" }
     ];
 
-    // Populate Select Elements
     const sireSelect = document.getElementById('sire');
     const damSelect = document.getElementById('dam');
 
@@ -51,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (form) {
         form.addEventListener('submit', async (e) => {
-            // 1. デフォルトのフォーム送信（画面遷移）を止める
+            // デフォルトのフォーム送信（画面遷移）を止める
             e.preventDefault();
 
             // 値の取得
@@ -89,7 +88,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (!response.ok) {
-                    throw new Error('Server Error');
+                    // エラーメッセージ取得
+                    const errorData = await response.json();
+                    const errorMsg = errorData.detail || errorData.message || '不明なサーバーエラー';
+                    throw new Error(errorMsg);
                 }
 
                 // Pythonからの返答を受け取る
@@ -115,7 +117,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error');
+                
+                // 画面に詳細を表示する（alertだと読みづらいので、画面内に表示するのがおすすめ）
+                const resultElement = document.getElementById('response-content'); // 結果表示エリア
+                if (resultElement) {
+                    resultElement.innerHTML = `<pre style="color: red; text-align: left;">${error.message}</pre>`;
+                    document.getElementById('responseArea').style.display = 'block';
+                } else {
+                    // 表示エリアがなければアラートで出す
+                    alert('エラーが発生しました:\n' + error.message);
+                }
             } finally {
                 // UIを元に戻す
                 loader.style.display = 'none';
