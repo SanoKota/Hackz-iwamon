@@ -128,15 +128,15 @@ def gallery():
         name = h.get('name', 'Unknown')
         father = h.get('father', '')
         mother = h.get('mother', '')
-        mother_father = h.get('mother_father', '')
+        grandpa = h.get('grandpa', '')
         
         horses.append({
             "id": h.get('id'), # Assuming DB uses 'id' as primary key
             "name": name,
-            "sire": f"{father} (父)",
-            "dam": f"{mother} (母)",
+            "sire": father,
+            "dam": mother,
+            "grandpa": grandpa,
             "image": f"https://placehold.co/600x400/1e293b/38bdf8?text={name}",
-            "description": f"父: {father}, 母: {mother}, 母父: {mother_father}。幻の名馬。"
         })
     return render_template('gallery.html', horses=horses)
 

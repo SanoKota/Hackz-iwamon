@@ -34,7 +34,7 @@
 
     <div class="container gallery-container">
         <!-- Title / Header -->
-        <h1>殿堂入り馬一覧</h1>
+        <h1>収録名馬一覧</h1>
         <p class="subtitle">歴代の名馬たち</p>
 
         <!-- Gallery Grid -->
@@ -49,8 +49,8 @@
                     <div class="pedigree">
                         <span class="label">父:</span> {{ horse.sire }}<br>
                         <span class="label">母:</span> {{ horse.dam }}
+                        <span class="label">（母父:</span> {{ horse.grandpa }}）
                     </div>
-                    <p class="description">{{ horse.description }}</p>
                 </div>
             </div>
             {% endfor %}

@@ -182,9 +182,7 @@ if __name__ == "__main__":
     index = get_horse_detail(horse_name = "アーモンドアイ")
     # names = select_data(table_name="race")  # 適切なテーブル名に置き換えてください
     print(index)
-    # print(len(names))
-    name = get_race_detail(race_name = "天皇賞(春)")
-    print(name)
+    # print(names)
     # insert_data("race_names", {'race_name': '天皇賞春', 'place_name': '京都競馬場', 'length': '3200', 'grass_or_dirt': 'grass', 'max_gate': '18'})  # 適切なテーブル名とデータに置き換えてください
     # names = select_data("race_names")  # 適切なテーブル名に置き換えてください
     # print(names)
