@@ -75,13 +75,13 @@ class RunGemini():
             return GeminiOutput(response=str(result))
 
     def save_new_horse(self, horse_data: dict) -> dict:
-        # Supabase に新しい馬データを保存する関数（既知のカラムだけ挿入）
+        # Supabase に新しい馬・レース・結果データを保存する関数
         if not horse_data:
             return {}
 
-        # horseテーブル既知カラム（推定）
+        # 1) 馬テーブル: name, sex, father, mother, grandpa
         allowed = {"name", "sex", "father", "mother", "grandpa"}
-        payload = {}
+        horse_payload = {}
 
         # 'grandfather' -> 'grandpa' マッピング
         if "grandfather" in horse_data and "grandpa" not in horse_data:
@@ -93,21 +93,109 @@ class RunGemini():
                 val = horse_data.get(key)
                 if isinstance(val, (dict, list)):
                     try:
-                        payload[key] = json.dumps(val, ensure_ascii=False)
+                        horse_payload[key] = json.dumps(val, ensure_ascii=False)
                     except Exception:
-                        payload[key] = str(val)
+                        horse_payload[key] = str(val)
                 else:
-                    payload[key] = val
+                    horse_payload[key] = val
 
-        if not payload:
+        if not horse_payload:
             return {}
 
+        # 馬の挿入（存在チェック→なければ挿入）
+        horse_id = None
         try:
-            resp = insert_data("horse", payload)
-            return resp
+            rows = select_data("horse", columns="*") or []
+            target_name = horse_payload.get("name")
+            for r in rows:
+                if r.get("name") == target_name:
+                    horse_id = r.get("horse_id") or r.get("id")
+                    break
+            if horse_id is None:
+                # 既存の最大 horse_id を調べて次番号で挿入
+                try:
+                    max_id = 0
+                    for r in rows:
+                        val = r.get("horse_id") or r.get("id")
+                        try:
+                            iv = int(val)
+                            if iv > max_id:
+                                max_id = iv
+                        except Exception:
+                            continue
+                    horse_payload["horse_id"] = max_id + 1
+                except Exception:
+                    pass
+                insert_data("horse", horse_payload)
+                rows = select_data("horse", columns="*") or []
+                for r in rows:
+                    if r.get("name") == target_name:
+                        horse_id = r.get("horse_id") or r.get("id")
+                        break
         except Exception as e:
-            print("Error saving new horse:", e)
-            return {}
+            print("Error inserting/fetching horse:", e)
+
+        if horse_id is None:
+            # 馬IDが取得できない場合、以降の紐付けができないため終了
+            return {"error": "horse_id_not_found"}
+
+        # 2) レース・結果の挿入
+        race_records = horse_data.get("race_record") if isinstance(horse_data.get("race_record"), list) else []
+        results = []
+        for rec in race_records:
+            if not isinstance(rec, dict):
+                continue
+            race_name = rec.get("race_name")
+            rank = rec.get("ranking") or rec.get("rank")
+            date = rec.get("date")
+
+            # レース取得/作成
+            race_id = None
+            try:
+                race_rows = select_data("race", columns="*") or []
+                for rr in race_rows:
+                    if rr.get("name") == race_name:
+                        race_id = rr.get("race_id") or rr.get("id")
+                        break
+                if race_id is None and race_name:
+                    # 既存の最大 race_id を調べて次番号で挿入
+                    max_race_id = 0
+                    for rr in race_rows:
+                        val = rr.get("race_id") or rr.get("id")
+                        try:
+                            iv = int(val)
+                            if iv > max_race_id:
+                                max_race_id = iv
+                        except Exception:
+                            continue
+                    race_payload = {"name": race_name, "race_id": max_race_id + 1}
+                    insert_data("race", race_payload)
+                    race_rows = select_data("race", columns="*") or []
+                    for rr in race_rows:
+                        if rr.get("name") == race_name:
+                            race_id = rr.get("race_id") or rr.get("id")
+                            break
+            except Exception as e:
+                print("Error inserting/fetching race:", e)
+
+            if race_id is None:
+                # レースが特定できない場合は結果挿入をスキップ
+                continue
+
+            # 結果の挿入
+            try:
+                payload = {
+                    "race_id": race_id,
+                    "horse_id": horse_id,
+                    "date": date,
+                    "rank": rank,
+                }
+                insert_data("result", payload)
+                results.append(payload)
+            except Exception as e:
+                print("Error inserting result:", e)
+
+        return {"horse_id": horse_id, "results": results}
 
     def dream_race(self) -> str:
         # リクエストJSONファイルが存在すれば読み取り（失敗しても継続）
