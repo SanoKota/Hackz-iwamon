@@ -1,14 +1,14 @@
 # Web Framework
-Flask>=3.1.0
+flask==3.1.2
 
 # Google Gemini AI (最新のUnified SDK)
-google-genai>=0.5.0
+google-genai==1.56.0
 
 # Database (Pydantic v2対応版)
-supabase>=2.10.0
+supabase>=2.10.0,<3.0.0
 
 # Data Validation
-pydantic>=2.10.0
+pydantic==2.12.5
 
 # Environment Variables
-python-dotenv>=1.0.1
+python-dotenv==1.0.1
