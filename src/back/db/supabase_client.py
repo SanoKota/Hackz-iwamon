@@ -2,19 +2,59 @@ import os
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
-# 環境変数の読み込み
 load_dotenv()
 
-# Supabaseの設定
-url: str = os.environ.get("SUPABASE_URL")
-key: str = os.environ.get("SUPABASE_KEY")
+def _read_secret_file(path: str) -> str | None:
+    try:
+        if not path:
+            return None
+        if not os.path.exists(path):
+            return None
+        with open(path, "r", encoding="utf-8") as f:
+            value = f.read().strip()
+        return value or None
+    except Exception:
+        return None
 
-# クライアントの初期化（URLとKeyが設定されている場合のみ）
-supabase: Client = None
-if url and key and url != "your_supabase_url" and key != "your_api_key":
-    supabase = create_client(url, key)
-else:
-    print("Warning: SUPABASE_URL or SUPABASE_KEY is not set correctly in .env file.")
+def get_supabase_credentials() -> tuple[str | None, str | None]:
+    """
+    SUPABASEのURLとKEYを取得する。
+    優先順:
+      1. 環境変数 SUPABASE_URL / SUPABASE_KEY
+      2. 環境変数で指定されたファイル SUPABASE_URL_FILE / SUPABASE_KEY_FILE
+    """
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+
+    if url and key:
+        return url, key
+
+    url_file = os.environ.get("SUPABASE_URL_FILE")
+    key_file = os.environ.get("SUPABASE_KEY_FILE")
+    url_from_file = _read_secret_file(url_file)
+    key_from_file = _read_secret_file(key_file)
+
+    return url or url_from_file, key or key_from_file
+
+def create_supabase_client() -> Client | None:
+    """
+    取得した資格情報からSupabaseクライアントを生成する。
+    足りない場合はNoneを返し、分かりやすい警告を出す。
+    """
+    url, key = get_supabase_credentials()
+    if not url or not key:
+        print(
+            "Warning: SUPABASE_URL or SUPABASE_KEY is not set. "
+            "Set them via environment variables on Render or a local .env."
+        )
+        return None
+    try:
+        return create_client(url, key)
+    except Exception as e:
+        print(f"Error creating Supabase client: {e}")
+        return None
+
+supabase: Client | None = create_supabase_client()
 
 def insert_data(table_name: str, data: dict):
     """
