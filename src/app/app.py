@@ -37,7 +37,6 @@ def generate():
             json.dump(data, f, ensure_ascii=False, indent=4)
         
         # Geminiを実行
-        # ※ ここでRunGeminiがgeminioutput.jsonを更新することを想定しています
         gemini = RunGemini()
         output = gemini.execute()
         
@@ -99,6 +98,9 @@ def gallery():
         father = h.get('father', '')
         mother = h.get('mother', '')
         grandpa = h.get('grandpa', '')
+        image = h.get('image')
+        if not image:
+            image = "/static/default_horse.png"
         
         horses.append({
             "id": h.get('id'), # Assuming DB uses 'id' as primary key
@@ -106,7 +108,7 @@ def gallery():
             "sire": father,
             "dam": mother,
             "grandpa": grandpa,
-            "image": f"https://placehold.co/600x400/1e293b/38bdf8?text={name}",
+            "image": image,
         })
     return render_template('gallery.html', horses=horses)
 
