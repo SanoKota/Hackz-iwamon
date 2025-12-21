@@ -14,12 +14,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
-            checkbox.id = `horse-${horse.id}`;
+            // Use index to ensure unique ID even if horse.id is duplicate or missing
+            const uniqueId = `horse-idx-${index}`;
+            checkbox.id = uniqueId;
             checkbox.value = horse.value; // Name + Pedigree
             checkbox.className = 'horse-checkbox';
 
             const label = document.createElement('label');
-            label.htmlFor = `horse-${horse.id}`;
+            label.htmlFor = uniqueId;
             label.textContent = horse.name;
             label.title = horse.value;
 
