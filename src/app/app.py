@@ -246,5 +246,8 @@ def run_race():
             "error_details": error_details
         }), 500
 
-if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+from src.app.app import app
+
+if __name__ == "__main__":
+    # ローカル実行時のフォールバック
+    app.run(host="0.0.0.0", port=8000)
